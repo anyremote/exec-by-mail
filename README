@@ -1,0 +1,126 @@
+=================================================================================           
+
+README exec-by-mail
+
+=================================================================================           
+
+exec-by-mail is a daemon which executes commands base on received e-mail messages.
+
+The code is licensed under the GNU Public licence v.2+ (GPL).
+(C) by Mikhail Fedotov 2015.
+
+
+
+Installation
+=================================================================================           
+
+exec-by-mail is python script, so it needs just install it by:
+
+make install
+
+Configuration
+=================================================================================           
+Default configuration file is supplied in tarball and copied to /etc/exec-by-mail.conf.example
+on installation.
+
+By itself configuration file is python script, so you should be aware of it syntax.
+
+It contans values for incoming/outcoming mail servers:
+
+# Incoming mail server
+_imapserver = 'imap.bla-bla.org'
+_imaplogin  = 'logmein@bla-bla.org'
+_imappass   = 'mypass'
+
+# Outgoing mail server
+_smtpserver = 'smtp.bla-bla.org'
+_smtplogin  = 'logmein@bla-bla.org'
+_smtppass   = 'mypass'
+
+
+Some additional parameters:
+
+_timeout  = 30
+_pidfile  = '/var/run/exec-by-mail.pid'
+
+
+Most valueable part, execution control list:
+
+_config = [
+  ["PING", 
+   ["",      "",        "Body", "PONG %f"],
+  ],
+  ["DISKSTAT", 
+   ["",     "df -kl",   "Body", "Statistics"],
+  ],
+  ["FILE", 
+    ["DIR", "ls -1 %1", "Body", "Directory %1"],
+    ["GET", "%1",       "File", "File %1"]
+  ]
+]
+
+So, "_config" execution control list contains of command definitions. 
+
+Each command definition consist of name and list of subcommands.
+
+Each subcommand consist of four elenements:
+ - subcommand name (can be "" in the case of single subcommand)
+ - command to execute (can be empty, in some cases can be interpreted as file name, see below)
+ - replay parameter:
+   B|Body       - send command output as body of message
+   A|Attachment - send command output as attachment to the message
+   F|File       - interpret command field as file name, and send that file as attachment to the message
+   N|No         - do not send reply message, just execute command
+ - Some text which will be prepended to the replay message body.
+
+Command can contain parameters. 
+These parameters will be substituted instead of %1-%9 before execution. 
+Value of 'From' headers of incoming message will be substituted instead of %f
+
+
+Allow/deny lists
+
+_allow = [
+  "bla-bla-allowed@mail.com", 
+  "@gmail.com", 
+]
+
+_deny = [
+  "@yahoo.com"
+  "bla-bla-denyed@yahoo.com"
+]
+
+It is possible to specify allow/deny pattern by exact e-mail address or whohe e-mail domain.
+If _allow pattern specified and non-empty then e-mails only from matched senders will be processed.
+If _allow pattern is absent or empty it does not taken into account.
+If _deny pattern specified and non-empty then e-mails from matched senders will be discarded.
+
+
+
+Usage
+=================================================================================    
+  
+To trigger some command it needs to send message to mail recepient specified by _imaplogin
+parameter (logmein@bla-bla.org). Message body should contains list of command, one command per line.
+
+For example, according the execution control list above, message with text:
+
+PING
+
+will results in replay message string "PONG <sender e-mail>" inside, message with text:
+
+FILE GET /etc/passwd
+
+will results in replay message which will contains /etc/passwd file in attachment.
+
+Reply address is determined by 'Reply-To' or 'From' headers of incoming message.
+   
+
+Security
+=================================================================================           
+This service is potentially vulnerable. Please use it at your own risk !
+
+It is suggested:
+ - use allow/deny lists
+ - do not use vulnerable commands in execution control list.
+
