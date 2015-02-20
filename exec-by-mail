@@ -14,9 +14,8 @@
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 NAME=exec-by-mail
-PROGRAM=/mnt/d1/tmp/exec-by-mail.py
-#/usr/bin/exec-by-mail
-CONF=/mnt/d1/tmp/exec-by-mail.conf
+PROGRAM=/usr/bin/exec-by-mail
+CONF=/etc/exec-by-mail.conf
 
 test -x $PROGRAM || exit 0
 
