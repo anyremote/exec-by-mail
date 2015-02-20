@@ -17,6 +17,7 @@ NAME=exec-by-mail
 PROGRAM=/usr/bin/exec-by-mail
 CONF=/etc/exec-by-mail.conf
 
+
 test -x $PROGRAM || exit 0
 
 case "$1" in
